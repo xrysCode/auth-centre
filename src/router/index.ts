@@ -1,26 +1,48 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import HelloWorld from '../components/HelloWorld.vue'
 import TableCom from '../components/TableCom.vue'
+import TableCom2 from '../components/TableCom2.vue'
 import AppHome from '@/App.vue'
+import DraggableTree from '../components/DraggableTree.vue'
+import User from '../components/User.vue'
+
+import FunctionTree from '../components/FunctionTree.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
-    name: 'AppHome',
-    component: AppHome
+    path: '/base/application',
+    name: 'application',
+    component: TableCom,
+    props: {
+      tableUrl: '/base/application'
+    }
   },
   {
-    path: '/about',
-    name: 'About',
+    path: '/serve/split',
+    name: 'TableCom2',
+    component: TableCom2,
+    props: {
+      tableUrl: '/base/service'
+    }
+  },
+  {
+    path: '/functionTree',
+    name: 'FunctionTree',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    component: FunctionTree// () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+  },
+
+  {
+    path: '/menus',
+    name: 'DraggableTree',
+    component: DraggableTree
   },
   {
-    path: '/base/serve',
-    name: 'TableCom',
-    component: TableCom
+    path: '/user',
+    name: 'user',
+    component: User
   }
 ]
 

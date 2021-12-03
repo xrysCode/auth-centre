@@ -21,13 +21,13 @@
         <el-menu :default-openeds="['1', '2']" router="true">
           <el-sub-menu index="1">
             <template #title><i class="el-icon-message"></i>菜单配置</template>
-              <el-menu-item index="/about">首页菜单</el-menu-item>
+              <el-menu-item index="/menus" @click="addTab('/menus','首页菜单')">首页菜单</el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="2">
             <template #title><i class="el-icon-menu"></i>服务基础元数据</template>
-              <el-menu-item index="/base/serve" @click="addTab('/base/serve','服务')">服务</el-menu-item>
-              <el-menu-item index="/" @click="addTab('/','服务拆分')">服务拆分</el-menu-item>
-              <el-menu-item index="2-2">模块功能树</el-menu-item>
+              <el-menu-item index="/base/application" @click="addTab('/base/application','应用')" v-fun.props="['index','route','label']">应用</el-menu-item>
+              <el-menu-item index="/serve/split" @click="addTab('/serve/split','服务拆分')">服务拆分</el-menu-item>
+              <el-menu-item index="/functionTree" @click="addTab('/functionTree','模块功能树')">模块功能树</el-menu-item>
           </el-sub-menu>
           <el-sub-menu index="3">
             <template #title><i class="el-icon-setting"></i>权限维护</template>
@@ -38,7 +38,7 @@
             </el-menu-item-group>
             <el-menu-item-group>
               <template #title>用户</template>
-              <el-menu-item index="3-1">用户维护</el-menu-item>
+              <el-menu-item index="/user"  @click="addTab('/user','用户维护')">用户维护</el-menu-item>
               <el-menu-item index="3-2">用户权限分配</el-menu-item>
             </el-menu-item-group>
           </el-sub-menu>
@@ -47,7 +47,7 @@
 
       <el-main>
         <!-- <tabs/> -->
-        <!-- <hello-world/> -->
+        <!-- <hello-world v-fun.props=""/> -->
 
       <el-tabs
           v-model="chooseTabName"
@@ -59,11 +59,31 @@
             :key="item.name"
             :label="item.title"
             :name="item.name">
-            {{ item.content }}
-            <router-view/>
+            <!-- {{ item.content }} -->
+<!-- <router-view/> -->
+<router-view v-slot="{ Component, route }">
+  <transition :name="route.meta.transition || 'fade'" mode="out-in">
+        <keep-alive>
+          <component
+            :is="Component"
+            :key="route.fullPath"
+          />
+        </keep-alive>
+      </transition>
+</router-view>
 
-            <!-- <table-com/> -->
           </el-tab-pane>
+          <!-- <router-view/> -->
+          <!-- <router-view v-slot="{ Component, route }">
+            <transition :name="route.meta.transition || 'fade'" mode="out-in">
+                  <keep-alive>
+                    <component
+                      :is="Component"
+                      :key="route.fullPath"
+                    />
+                  </keep-alive>
+                </transition>
+          </router-view> -->
         </el-tabs>
 
       </el-main>
@@ -140,7 +160,7 @@ export default defineComponent({
 })
 </script>
 
-<style>
+<style >
 .el-header {
   background-color: #b3c0d1;
   color: var(--el-text-color-primary);

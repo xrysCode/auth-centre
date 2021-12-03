@@ -30,7 +30,7 @@ instance.interceptors.request.use(function (config) {
   // config.data.data = a
   // console.log(a, b)
   // config.headers.common.auth = 'zzzz'
-
+  // debugger
   return config
 }, function (error) {
   // 对请求错误做些什么
