@@ -1,26 +1,35 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import HelloWorld from '../components/HelloWorld.vue'
-import TableCom from '../components/TableCom.vue'
-import TableCom2 from '../components/TableCom2.vue'
+import AuthTable from '../business/AuthTable.vue'
+import Application from '../business/Application.vue'
+import ServiceSplit from '../business/ServiceSplit.vue'
 import AppHome from '@/App.vue'
-import DraggableTree from '../components/DraggableTree.vue'
-import User from '../components/User.vue'
+import MenuTree from '../business/MenuTree.vue'
+import TableCom from '../components/TableCom.vue'
+import UserTable from '../business/UserTable.vue'
 
-import FunctionTree from '../components/FunctionTree.vue'
+import FunctionTree from '../business/FunctionTree.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: '/',
+    name: 'TableCom',
+    component: TableCom,
+    props: {
+      tableUrl: '/base/service'
+    }
+  },
+  {
     path: '/base/application',
     name: 'application',
-    component: TableCom,
+    component: Application,
     props: {
       tableUrl: '/base/application'
     }
   },
   {
     path: '/serve/split',
-    name: 'TableCom2',
-    component: TableCom2,
+    name: 'ServiceSplit',
+    component: ServiceSplit,
     props: {
       tableUrl: '/base/service'
     }
@@ -37,12 +46,17 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/menus',
     name: 'DraggableTree',
-    component: DraggableTree
+    component: MenuTree
+  },
+  {
+    path: '/authTable',
+    name: 'AuthTable',
+    component: AuthTable
   },
   {
     path: '/user',
     name: 'user',
-    component: User
+    component: UserTable
   }
 ]
 

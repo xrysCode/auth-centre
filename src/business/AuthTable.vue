@@ -2,8 +2,15 @@
   <el-button type="primary" plain @click="openDialog(true)">新 增</el-button>
 
   <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
-    <el-table-column v-fun.props="['key','prop','label']" v-show="true" v-for="(value, name) in tableColumn"
-      :key="name" :prop="name" :label="value.label"  />
+    <el-table-column prop="id" label="id" />
+    <el-table-column prop="authCode" label="权限Key" />
+    <el-table-column prop="authName" label="权限组名" />
+    <el-table-column prop="authDesc" label="组描述" />
+    <el-table-column prop="appId" label="归属应用id" />
+    <el-table-column prop="appId" label="归属应用id" />
+    <el-table-column prop="createUser" label="创建人" />
+    <el-table-column prop="createTime" label="创建时间" />
+
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
         <el-button type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
@@ -30,13 +37,22 @@
       label-position="right"
       label-width="80px"
       :model="dialogData"
-      :rules="dialogData.rules"
     >
-     <el-form-item v-for="(value, name) in tableColumn" v-show="value.show&&value.edit" :key="name" :prop="name" :label="value.label">
-        <el-input v-show="value.edit" v-model="editData[name]" :type="value.type"></el-input>
-
+      <el-form-item label="权限组名" required="true">
+        <el-input v-model="editData.authName" />
+      </el-form-item>
+      <el-form-item label="组描述" type="textarea">
+        <el-input v-model="editData.authDesc" />
+      </el-form-item>
+      <el-form-item label="权限key" >
+        <el-input v-model="editData.authCode" disabled/>
       </el-form-item>
 
+      <el-form-item label="归属应用" required="true">
+        <el-select v-model="editData.appId" @click="queryApps"  placeholder="应用选择">
+         <el-option v-for="item in appOptions"  :key="item.id" :label="item.appName"  :value="item.id" />
+       </el-select>
+      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -46,45 +62,15 @@
       </span>
     </template>
   </el-dialog>
+
 </template>
 
 <script lang="ts">
-import { InitRequest } from '@/base_scan/auth2.js'
 export default {
-  components: {
-    // TableCom
-  // ,
-  },
-  name: '表',
-  // initRequest: new InitRequest('get', '/base/service'),
-  // {
-  //   requestMethod: 'get',
-  //   requestUrl: '/base/service'
-  // },
-  props: {
-    // tableColumn: Object,
-    tableUrl: String
-  },
+  name: '服务拆分',
   data () {
     return {
-      tableColumn: {
-        id: { label: '主键', edit: true },
-        appName: {
-          label: '应用名',
-          show: true,
-          edit: true,
-          rules: [
-            {
-              required: true,
-              message: '应用名必填',
-              trigger: 'blur'
-            }]
-        },
-        accessPath: { label: '应用地址', show: true, edit: true },
-        appDesc: { label: '简述', show: true, edit: true },
-        createUser: { label: '创建人', show: true },
-        createTime: { label: '创建时间', show: true }
-      },
+      appOptions: [],
       pageData: {
         current: 1,
         size: 10,
@@ -107,20 +93,11 @@ export default {
     }
   },
   created () {
-    const tableColumn = this.tableColumn
-    const rulesConvert = { }
-    for (const key in tableColumn) {
-      if (tableColumn[key].rules) {
-        rulesConvert[key] = tableColumn[key].rules
-      }
-    }
-    this.dialogData.rules = rulesConvert
     this.refreshData()
   },
   methods: {
     refreshData () {
-      // debugger
-      this.axios.get(this.$props.tableUrl, {
+      this.axios.get('/auth/group', {
         params: {
           current: this.pageData.current,
           size: this.pageData.size,
@@ -147,26 +124,27 @@ export default {
       this.refreshData()
     },
     openDialog (isAdd, row) {
-      const tableColumn = this.tableColumn
-      for (const key in this.tableColumn) {
-        if (tableColumn[key].edit === true) {
-          if (isAdd) {
-            this.editData[key] = null
-          } else {
-            this.editData[key] = row[key]
-          }
-        }
+      if (isAdd) {
+        this.editData = {}
+      } else {
+        this.editData = row
       }
-
       this.dialogData.isAdd = isAdd
       this.dialogData.dialogVisible = true
+    },
+    queryApps () {
+      this.axios.get('/base/application', {
+        params: { current: 1, size: 20 }
+      }).then((data) => {
+        this.appOptions = data.records
+      })
     },
     saveData () {
       let promise = null
       if (this.dialogData.isAdd) {
-        promise = this.axios.post(this.$props.tableUrl, this.editData)
+        promise = this.axios.post('/auth/group', this.editData)
       } else {
-        promise = this.axios.put(this.$props.tableUrl, this.editData)
+        promise = this.axios.put('/auth/group', this.editData)
       }
       promise.then(data => {
         this.dialogData.dialogVisible = false
@@ -175,7 +153,7 @@ export default {
     },
     deleteRow (row) {
       debugger
-      this.axios.delete(this.$props.tableUrl, { data: [row.id] })
+      this.axios.delete('/auth/group', { data: [row.id] })
         .then(data => {
           this.dialogData.dialogVisible = false
           this.refreshData()

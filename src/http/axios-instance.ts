@@ -3,8 +3,8 @@ import axios from 'axios'
 
 // Set config defaults when creating the instance
 const instance = axios.create({
-  // baseURL: 'http://47.112.148.138:9000/'
-  baseURL: 'http://localhost:9000/'
+  baseURL: 'http://47.112.148.138:9000/'
+  // baseURL: 'http://localhost:9000/'
 })
 
 const f = () => {

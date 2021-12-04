@@ -5,7 +5,8 @@
       <el-select v-model="currentApp" @click="queryApp" @change="refreshTreeAndIframe" placeholder="应用选择">
         <el-option v-for="item in appOptions"  :key="item.id"   :label="item.appName"  :value="item" />
       </el-select>
-      提取页地址：{{currentRoute.href?currentRoute.href: iframeUrl}}
+      提取页域名：{{iframeUrl.origin}}
+      提取页路劲：{{iframeUrl.path}}
       <el-main >组件树
         <el-switch  v-model="isOpenScan"  @change="openScan"  inline-prompt  active-color="#13ce66"  inactive-color="#ff4949"
          active-text="开启组件扫描" inactive-text="关闭组件扫描" />
@@ -55,7 +56,7 @@
       </el-main>
     </el-aside>
     <el-main>提取页
-      <iframe id="iframeTest" title="寻找组件与树通讯" name="组件拾取" width="100%" height="650" :src="iframeUrl"></iframe>
+      <iframe id="iframeTest" title="寻找组件与树通讯" name="组件拾取" width="100%" height="650" :src="iframeUrl.href"></iframe>
     </el-main>
   </el-container>
 
@@ -105,13 +106,18 @@
 import { MessageNotify, OPEN_COMPONENT_LISTENER, CLOSE_COMPONENT_LISTENER } from '@/base_scan/auth2.js'
 
 export default {
+  name: '功能树',
   data () {
     return {
       appOptions: [],
       currentApp: null,
       appServiceOptions: [],
 
-      iframeUrl: null,
+      iframeUrl: {
+        origin: '',
+        path: '',
+        get href () { return this.origin + this.path }
+      },
       currentRoute: {},
       componentTree: [],
       funTree: [],
@@ -131,7 +137,6 @@ export default {
   created () {
     this.queryApp().then(() => {
       this.currentApp = this.appOptions[0]
-      this.iframeUrl = this.currentApp.accessPath
       this.refreshTreeAndIframe()
     })
   },
@@ -182,6 +187,8 @@ export default {
       const newTrees = new Array(JSON.parse(event.data.dataJson))
       const currentRoute = JSON.parse(event.data.currentRouteJson)
       _this.currentRoute = currentRoute
+      _this.iframeUrl.origin = event.origin + '/'
+      _this.iframeUrl.path = currentRoute.href
       // 过滤仅展示打标的数据
       const rootComponentTree = []
       filterToTree(newTrees, null, rootComponentTree)
@@ -227,7 +234,16 @@ export default {
       this.componentTree = []
       this.componentTree = null
       this.editData = null
-      this.iframeUrl = this.currentApp.accessPath
+      const accessPath = this.currentApp.accessPath
+      if (accessPath.startsWith('http')) { // 存在以域名开头的和/开头的路径
+        this.iframeUrl.origin = accessPath.replace(/(^https*:\/\/[^/]+)(.+)/, '$1')
+        this.iframeUrl.path = accessPath.replace(/(^https*:\/\/[^/]+)(.+)/, '$2')
+      } else {
+        this.iframeUrl.origin = ''
+        this.iframeUrl.path = accessPath
+      }
+
+      // this.iframeUrl = this.currentApp.accessPath
       this.refreshFunTree()
     },
     queryAppServices () {

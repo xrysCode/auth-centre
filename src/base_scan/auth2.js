@@ -35,8 +35,10 @@ function parseComponentTree (vNode, parentNode) {
   }
   if (vNode.shapeFlag & (16)) { // 数组节点
     const vNodes = vNode.children
-    for (let i = 0; i < vNodes.length; i++) {
-      parseComponentTree(vNodes[i], parentNode)
+    if (vNodes) {
+      for (let i = 0; i < vNodes.length; i++) {
+        parseComponentTree(vNodes[i], parentNode)
+      }
     }
   }
 
@@ -264,12 +266,12 @@ export default {
     // 注入全局混入代理  这里对比是否需要拦截或者展示auth按钮配置
     // 默认开启
     app.mixin({
-      data () {
-        // this.$router.currentRoute
-        return {
-          dataRule: { a: 'a' }
-        }
-      },
+      // data () {
+      //   // this.$router.currentRoute
+      //   return {
+      //     dataRule: { a: 'a' }
+      //   }
+      // },
       beforeCreate () {
         // this.componentModule = new ComponentModule(this)
         // DOM 尚未更新

@@ -1,3 +1,4 @@
+
 <template>
   <el-container style="height: 500px; border: 1px solid #eee">
 
@@ -18,18 +19,24 @@
     <el-container>
 
     <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-        <el-menu :default-openeds="['1', '2']" router="true">
-          <el-sub-menu index="1">
-            <template #title><i class="el-icon-message"></i>菜单配置</template>
-              <el-menu-item index="/menus" @click="addTab('/menus','首页菜单')">首页菜单</el-menu-item>
+        <el-menu :default-openeds="['1']" router="true">
+          <el-sub-menu  v-for="(item, i) in menus" :index="item.routerPath?item.routerPath:i" :key="item.id">
+            <template #title><i class="el-icon-message"></i>{{item.menuName}}</template>
+
+            <template v-if="item.children&&item.children.length!=0">
+              <el-menu-item v-for="item2 in item.children" :key="item2.id" :index="item2.routerPath"
+                          @click="addTab(item2.routerPath,item2.menuName)">{{item2.menuName}}
+              </el-menu-item>
+            </template>
           </el-sub-menu>
+
           <el-sub-menu index="2">
             <template #title><i class="el-icon-menu"></i>服务基础元数据</template>
               <el-menu-item index="/base/application" @click="addTab('/base/application','应用')" v-fun.props="['index','route','label']">应用</el-menu-item>
               <el-menu-item index="/serve/split" @click="addTab('/serve/split','服务拆分')">服务拆分</el-menu-item>
               <el-menu-item index="/functionTree" @click="addTab('/functionTree','模块功能树')">模块功能树</el-menu-item>
           </el-sub-menu>
-          <el-sub-menu index="3">
+          <!-- <el-sub-menu index="3">
             <template #title><i class="el-icon-setting"></i>权限维护</template>
             <el-menu-item-group>
               <template #title>Group 1</template>
@@ -41,39 +48,20 @@
               <el-menu-item index="/user"  @click="addTab('/user','用户维护')">用户维护</el-menu-item>
               <el-menu-item index="3-2">用户权限分配</el-menu-item>
             </el-menu-item-group>
-          </el-sub-menu>
+          </el-sub-menu> -->
         </el-menu>
       </el-aside>
 
       <el-main>
-        <!-- <tabs/> -->
-        <!-- <hello-world v-fun.props=""/> -->
-
-      <el-tabs
-          v-model="chooseTabName"
-          type="card"
-          closable
-          @tab-remove="removeTab">
+      <el-tabs  v-model="chooseTabName" type="card"  closable  @tab-remove="removeTab" @tab-click="chooseTab">
           <el-tab-pane
             v-for="item in editableTabs"
             :key="item.name"
             :label="item.title"
             :name="item.name">
-            <!-- {{ item.content }} -->
-<!-- <router-view/> -->
-<router-view v-slot="{ Component, route }">
-  <transition :name="route.meta.transition || 'fade'" mode="out-in">
-        <keep-alive>
-          <component
-            :is="Component"
-            :key="route.fullPath"
-          />
-        </keep-alive>
-      </transition>
-</router-view>
 
           </el-tab-pane>
-          <!-- <router-view/> -->
+          <router-view/>
           <!-- <router-view v-slot="{ Component, route }">
             <transition :name="route.meta.transition || 'fade'" mode="out-in">
                   <keep-alive>
@@ -84,6 +72,7 @@
                   </keep-alive>
                 </transition>
           </router-view> -->
+
         </el-tabs>
 
       </el-main>
@@ -111,15 +100,16 @@ export default defineComponent({
   },
   data () {
     return {
+      menus: [],
       chooseTabName: '1',
-      editableTabs: [
-        {
-          title: 'Tab 1',
-          name: '1',
-          content: 'Tab 1 content'
-        }
-      ]
+      editableTabs: []
     }
+  },
+  created () {
+    this.axios.get('/other/menus', {})
+      .then((data) => {
+        this.menus = data
+      })
   },
   methods: {
     addTab (newTabName, title) {
@@ -140,23 +130,35 @@ export default defineComponent({
       this.chooseTabName = newTabName
     },
     removeTab (targetName: string) {
-      const tabs = this.editableTabs
-      let activeName = this.editableTabsValue
-      if (activeName === targetName) {
-        tabs.forEach((tab, index) => {
-          if (tab.name === targetName) {
-            const nextTab = tabs[index + 1] || tabs[index - 1]
-            if (nextTab) {
-              activeName = nextTab.name
-            }
+      const editableTabs = this.editableTabs
+      const tabs = []
+      for (let i = 0; i < editableTabs.length; i++) {
+        const tab = editableTabs[i]
+        if (tab.name === targetName) {
+          if (editableTabs.length === 1) {
+            this.chooseTabName = null
+            continue
           }
-        })
+          if (i === editableTabs.length - 1) {
+            this.chooseTabName = editableTabs[i - 1].name
+          } else {
+            this.chooseTabName = editableTabs[i + 1].name
+          }
+          continue
+        }
+        tabs.push(tab)
       }
-
-      this.editableTabsValue = activeName
-      this.editableTabs = tabs.filter((tab) => tab.name !== targetName)
+      this.editableTabs = tabs
+      this.$router.push(this.chooseTabName)
+      // this.editableTabs = tabs.filter((tab) => tab.name !== targetName)
+    },
+    chooseTab (tab) {
+      this.chooseTabName = tab.props.name
+      this.$router.push(tab.props.name)
     }
+
   }
+
 })
 </script>
 

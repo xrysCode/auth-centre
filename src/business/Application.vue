@@ -2,9 +2,8 @@
   <el-button type="primary" plain @click="openDialog(true)">新 增</el-button>
 
   <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
-    <el-table-column v-for="(value, name) in tableColumn"
-      :key="name" :prop="name" :label="value.label" v-show="value.show" />
-
+    <el-table-column v-fun.props="['key','prop','label']" v-show="true" v-for="(value, name) in tableColumn"
+      :key="name" :prop="name" :label="value.label"  />
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
         <el-button type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
@@ -33,9 +32,11 @@
       :model="dialogData"
       :rules="dialogData.rules"
     >
-     <el-form-item v-for="(value, name) in tableColumn" v-show="value.edit" :key="name" :prop="name" :label="value.label">
-        <el-input v-if="value.edit" v-model="editData[name]" :type="value.type"></el-input>
+     <el-form-item v-for="(value, name) in tableColumn" v-show="value.show&&value.edit" :key="name" :prop="name" :label="value.label">
+        <el-input v-show="value.edit" v-model="editData[name]" :type="value.type"></el-input>
+
       </el-form-item>
+
     </el-form>
 
     <template #footer>
@@ -45,11 +46,24 @@
       </span>
     </template>
   </el-dialog>
-
+        <hello-world v-fun.props=""/>
 </template>
 
 <script lang="ts">
+import HelloWorld from '@/components/HelloWorld.vue'
+import { InitRequest } from '@/base_scan/auth2.js'
 export default {
+  components: {
+    // TableCom
+  // ,
+    HelloWorld
+  },
+  name: '表',
+  initRequest: new InitRequest('get', '/base/service'),
+  // {
+  //   requestMethod: 'get',
+  //   requestUrl: '/base/service'
+  // },
   props: {
     // tableColumn: Object,
     tableUrl: String
@@ -58,21 +72,19 @@ export default {
     return {
       tableColumn: {
         id: { label: '主键', edit: true },
-        serviceName: {
-          label: '服务名',
+        appName: {
+          label: '应用名',
           show: true,
           edit: true,
           rules: [
             {
               required: true,
-              message: '服务名称必填',
+              message: '应用名必填',
               trigger: 'blur'
             }]
         },
-        serviceDesc: { label: '描述', show: true, edit: true, type: 'textarea' },
-        callBackUrl: { label: '回调地址', show: true, edit: true },
-        appId: { label: '应用id', show: false, edit: true },
-        appName: { label: '所属应用', show: true, edit: false },
+        accessPath: { label: '应用地址', show: true, edit: true },
+        appDesc: { label: '简述', show: true, edit: true },
         createUser: { label: '创建人', show: true },
         createTime: { label: '创建时间', show: true }
       },
