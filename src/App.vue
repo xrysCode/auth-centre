@@ -20,11 +20,11 @@
 
     <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
         <el-menu :default-openeds="['1']" router="true">
-          <el-sub-menu  v-for="(item, i) in menus" :index="item.routerPath?item.routerPath:i" :key="item.id">
+          <el-sub-menu v-fun.props="['index','key']" v-for="(item) in menus" :index="item.routerPath" :key="item.id">
             <template #title><i class="el-icon-message"></i>{{item.menuName}}</template>
 
             <template v-if="item.children&&item.children.length!=0">
-              <el-menu-item v-for="item2 in item.children" :key="item2.id" :index="item2.routerPath"
+              <el-menu-item v-fun.props="['index']" v-for="item2 in item.children" :key="item2.id" :index="item2.routerPath"
                           @click="addTab(item2.routerPath,item2.menuName)">{{item2.menuName}}
               </el-menu-item>
             </template>

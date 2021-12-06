@@ -1,13 +1,13 @@
 <template>
-  <el-button type="primary" plain @click="openDialog(true)">新 增</el-button>
+  <el-button v-fun.props="['key']" key="add" type="primary" plain @click="openDialog(true)">新 增</el-button>
 
-  <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
+  <el-table v-fun.props="[]" :data="pageData.tableData" current-row-key="id" style="width: 100%">
     <el-table-column v-fun.props="['key','prop','label']" v-show="true" v-for="(value, name) in tableColumn"
       :key="name" :prop="name" :label="value.label"  />
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
-        <el-button type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
-        <el-button type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button>
+        <el-button v-fun.props="['key']" key="edit" type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
+        <el-button v-fun.props="['key']" key="del" type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -46,19 +46,13 @@
       </span>
     </template>
   </el-dialog>
-        <hello-world v-fun.props=""/>
 </template>
 
 <script lang="ts">
-import HelloWorld from '@/components/HelloWorld.vue'
 import { InitRequest } from '@/base_scan/auth2.js'
 export default {
-  components: {
-    // TableCom
-  // ,
-    HelloWorld
-  },
   name: '表',
+  funFlag: [],
   initRequest: new InitRequest('get', '/base/service'),
   // {
   //   requestMethod: 'get',

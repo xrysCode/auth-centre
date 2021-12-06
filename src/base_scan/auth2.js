@@ -58,6 +58,7 @@ class ComponentNode {
 
     this.isFunNode = false
     this.props = null
+    // 指令
     if (vNode.dirs && vNode.el.fun === 'fun-flag') { // 有的带有指令，但是却没有作用于元素
       const funArr = vNode.dirs
       for (let i = 0; i < funArr.length; i++) {
@@ -67,11 +68,21 @@ class ComponentNode {
           this.props = {}
           if (dir.value instanceof Array) {
             dir.value.forEach(propName => {
-              this.props[propName] = _vComponent.props[propName]
+              this.props[propName] = vNode.props[propName]
             })
           }
           break
         }
+      }
+    }
+    // 组件自声明名
+    if (_vComponent.type.funFlag) {
+      this.isFunNode = true
+      this.props = {}
+      if (_vComponent.type.funFlag instanceof Array) {
+        _vComponent.type.funFlag.forEach(propName => {
+          this.props[propName] = vNode.props[propName]
+        })
       }
     }
 
@@ -241,7 +252,7 @@ export default {
         const value = binding.value
         // debugger
         vnode.funArr = value
-        el.style.backgroundColor = 'red'
+        // el.style.backgroundColor = 'red'
         // el.classList.add('fun-flag')
         el.fun = 'fun-flag'
         console.log(_this, vnode.el === el)

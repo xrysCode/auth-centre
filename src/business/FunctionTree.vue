@@ -1,15 +1,31 @@
 <template>
-
-  <el-container >
-    <el-aside width="600px" direction="vertical" >
-      <el-select v-model="currentApp" @click="queryApp" @change="refreshTreeAndIframe" placeholder="应用选择">
-        <el-option v-for="item in appOptions"  :key="item.id"   :label="item.appName"  :value="item" />
+  <el-container>
+    <el-aside width="600px" direction="vertical">
+      <el-select
+        v-model="currentApp"
+        @click="queryApp"
+        @change="refreshTreeAndIframe"
+        placeholder="应用选择"
+      >
+        <el-option
+          v-for="item in appOptions"
+          :key="item.id"
+          :label="item.appName"
+          :value="item"
+        />
       </el-select>
-      提取页域名：{{iframeUrl.origin}}
-      提取页路劲：{{iframeUrl.path}}
-      <el-main >组件树
-        <el-switch  v-model="isOpenScan"  @change="openScan"  inline-prompt  active-color="#13ce66"  inactive-color="#ff4949"
-         active-text="开启组件扫描" inactive-text="关闭组件扫描" />
+      提取页域名：{{ iframeUrl.origin }} 提取页路劲：{{ iframeUrl.path }}
+      <el-main
+        >组件树
+        <el-switch
+          v-model="isOpenScan"
+          @change="openScan"
+          inline-prompt
+          active-color="#13ce66"
+          inactive-color="#ff4949"
+          active-text="开启组件扫描"
+          inactive-text="关闭组件扫描"
+        />
         <el-tree
           :data="componentTree"
           node-key="uniqueFlag"
@@ -19,20 +35,25 @@
           :expand-on-click-node="false"
           :render-content="renderContent"
         >
-        <template #default="{  data }">
+          <template #default="{ data }">
             <span class="custom-tree-node">
-              <span>{{ data.funName }} 初始路由：{{data.currentReferer?data.currentReferer:'?'}} props:{{data.componentProps}}</span>
-              <span>
-                <a @click="openDialog(true,data)"> 移动到功能树 </a>
+              <span >
+                  {{ data.funName }} 初始路由：{{
+                    data.currentReferer ? data.currentReferer : "?"
+                  }}
+                  <!-- props:{{ data.componentProps }} -->
+                  </span>
+              <span >
+                <a @click="openDialog(true, data)"> 移动到功能树 </a>
               </span>
             </span>
           </template>
         </el-tree>
-
       </el-main>
-      <el-main >功能树
+      <el-main
+        >功能树
 
-      <el-tree
+        <el-tree
           :data="funTree"
           :props="treeProps"
           draggable
@@ -42,7 +63,7 @@
         >
           <template #default="{ node, data }">
             <span class="custom-tree-node">
-              <span>{{ node.label }} >> {{ data.routerPath }}</span>
+              <span>{{ node.label }} -> {{ data.componentType.name }}</span>
               <!-- <span>{{ data.authKeys }}</span> -->
               <span>
                 <a @click="openDialog(false, data)"> 编辑 </a>
@@ -52,41 +73,75 @@
             </span>
           </template>
         </el-tree>
-
       </el-main>
     </el-aside>
-    <el-main>提取页
-      <iframe id="iframeTest" title="寻找组件与树通讯" name="组件拾取" width="100%" height="650" :src="iframeUrl.href"></iframe>
+    <el-main
+      >提取页
+      <iframe
+        id="iframeTest"
+        title="寻找组件与树通讯"
+        name="组件拾取"
+        width="100%"
+        height="650"
+        :src="iframeUrl.href"
+      ></iframe>
     </el-main>
   </el-container>
 
-  <el-dialog  v-model="dialogData.dialogVisible" :title="dialogTitle"  width="30%" center >
-    <el-form :model="dialogData" :rules="dialogData.rules" label-position="right"  label-width="100px" >
+  <el-dialog
+    v-model="dialogData.dialogVisible"
+    :title="dialogTitle"
+    width="30%"
+    center
+  >
+    <el-form
+      :model="dialogData"
+      :rules="dialogData.rules"
+      label-position="right"
+      label-width="100px"
+    >
       <el-form-item label="功能名" required="true">
         <el-input v-model="editData.funName" />
       </el-form-item>
       <el-form-item label="描述">
-        <el-input v-model="editData.funDesc" type="textarea"/>
+        <el-input v-model="editData.funDesc" type="textarea" />
       </el-form-item>
       <el-form-item label="当前页面">
-        <el-input v-model="editData.currentReferer" type="textarea" disabled/>
+        <el-input v-model="editData.currentReferer" type="textarea" disabled />
       </el-form-item>
-        <el-form-item label="组件type">
-        <el-input v-model="editData.componentTypeStr" type="textarea" disabled/>
+      <el-form-item label="组件type">
+        <el-input
+          v-model="editData.componentTypeStr"
+          type="textarea"
+          disabled
+        />
       </el-form-item>
-        <el-form-item label="组件props">
-        <el-input v-model="editData.componentPropsStr" type="textarea" disabled/>
+      <el-form-item label="组件props">
+        <el-input
+          v-model="editData.componentPropsStr"
+          type="textarea"
+          disabled
+        />
       </el-form-item>
-        <el-form-item label="后端访问接口">
+      <el-form-item label="后端访问接口">
         <el-input v-model="editData.requestUrl" />
       </el-form-item>
-        <el-form-item label="请求方法">
+      <el-form-item label="请求方法">
         <el-input v-model="editData.requestMethod" />
       </el-form-item>
       <el-form-item label="归属服务选择">
-       <el-select v-model="editData.serviceId" @click="queryAppServices"  placeholder="应用服务选择">
-         <el-option  v-for="item in appServiceOptions"  :key="item.id"  :label="item.serviceName" :value="item.id" />
-       </el-select>
+        <el-select
+          v-model="editData.serviceId"
+          @click="queryAppServices"
+          placeholder="应用服务选择"
+        >
+          <el-option
+            v-for="item in appServiceOptions"
+            :key="item.id"
+            :label="item.serviceName"
+            :value="item.id"
+          />
+        </el-select>
       </el-form-item>
     </el-form>
 
@@ -103,7 +158,11 @@
 /* eslint-disable no-unused-vars */
 
 // import authPlugin from './plugins/auth2'
-import { MessageNotify, OPEN_COMPONENT_LISTENER, CLOSE_COMPONENT_LISTENER } from '@/base_scan/auth2.js'
+import {
+  MessageNotify,
+  OPEN_COMPONENT_LISTENER,
+  CLOSE_COMPONENT_LISTENER
+} from '@/base_scan/auth2.js'
 
 export default {
   name: '功能树',
@@ -116,7 +175,9 @@ export default {
       iframeUrl: {
         origin: '',
         path: '',
-        get href () { return this.origin + this.path }
+        get href () {
+          return this.origin + this.path
+        }
       },
       currentRoute: {},
       componentTree: [],
@@ -172,7 +233,7 @@ export default {
             parentFunTree.children.push(funNode)
           }
           parentFunTree = funNode
-        }// 树下的所有分支都挂在子级
+        } // 树下的所有分支都挂在子级
         filterToTree(node.childNodes, parentFunTree, rootArr)
         // 在循环结束复位
         rootArr = tempRootArr
@@ -212,11 +273,18 @@ export default {
       // let iframeWindown = (<HTMLIFrameElement> iframe).contentWindow;
       // iframeWindown.postMessage(new MessageNotify(OPEN_COMPONENT_LISTENER, null), iframeWindown.origin)
       // 开启点击触发树刷新
-      const iframeWindown = (document.getElementById('iframeTest') as any).contentWindow
+      const iframeWindown = (document.getElementById('iframeTest') as any)
+        .contentWindow
       if (this.isOpenScan) {
-        iframeWindown.postMessage(new MessageNotify(OPEN_COMPONENT_LISTENER, null), iframeWindown.origin)
+        iframeWindown.postMessage(
+          new MessageNotify(OPEN_COMPONENT_LISTENER, null),
+          iframeWindown.origin
+        )
       } else {
-        iframeWindown.postMessage(new MessageNotify(CLOSE_COMPONENT_LISTENER, null), iframeWindown.origin)
+        iframeWindown.postMessage(
+          new MessageNotify(CLOSE_COMPONENT_LISTENER, null),
+          iframeWindown.origin
+        )
         this.componentTree = []
         this.currentRoute = ''
       }
@@ -224,20 +292,29 @@ export default {
 
     /// ///////////////////////////////////////////////////////////////////////////////////////////////////////
     queryApp () {
-      return this.axios.get('/base/application', {
-        params: { current: 1, size: 20 }
-      }).then((data) => {
-        this.appOptions = data.records
-      })
+      return this.axios
+        .get('/base/application', {
+          params: { current: 1, size: 20 }
+        })
+        .then((data) => {
+          this.appOptions = data.records
+        })
     },
     refreshTreeAndIframe () {
       this.componentTree = []
       this.componentTree = null
       this.editData = null
       const accessPath = this.currentApp.accessPath
-      if (accessPath.startsWith('http')) { // 存在以域名开头的和/开头的路径
-        this.iframeUrl.origin = accessPath.replace(/(^https*:\/\/[^/]+)(.+)/, '$1')
-        this.iframeUrl.path = accessPath.replace(/(^https*:\/\/[^/]+)(.+)/, '$2')
+      if (accessPath.startsWith('http')) {
+        // 存在以域名开头的和/开头的路径
+        this.iframeUrl.origin = accessPath.replace(
+          /(^https*:\/\/[^/]+)(.+)/,
+          '$1'
+        )
+        this.iframeUrl.path = accessPath.replace(
+          /(^https*:\/\/[^/]+)(.+)/,
+          '$2'
+        )
       } else {
         this.iframeUrl.origin = ''
         this.iframeUrl.path = accessPath
@@ -247,20 +324,24 @@ export default {
       this.refreshFunTree()
     },
     queryAppServices () {
-      this.axios.get('/base/service', {
-        params: { current: 1, size: 20, appId: this.currentApp.id }
-      }).then((data) => {
-        this.appServiceOptions = data.records
-      })
+      this.axios
+        .get('/base/service', {
+          params: { current: 1, size: 20, appId: this.currentApp.id }
+        })
+        .then((data) => {
+          this.appServiceOptions = data.records
+        })
     },
 
     refreshFunTree () {
       // debugger
-      this.axios.get('/base/function-module', {
-        params: { appId: this.currentApp.id }
-      }).then((data) => {
-        this.funTree = data
-      })
+      this.axios
+        .get('/base/function-module', {
+          params: { appId: this.currentApp.id }
+        })
+        .then((data) => {
+          this.funTree = data
+        })
     },
     openDialog (isAdd, comData) {
       const editData = {
@@ -286,9 +367,11 @@ export default {
       })
     },
     remove (funTreeData) {
-      this.axios.delete('/base/function-module', { data: [funTreeData.id] }).then((data) => {
-        this.refreshFunTree()
-      })
+      this.axios
+        .delete('/base/function-module', { data: [funTreeData.id] })
+        .then((data) => {
+          this.refreshFunTree()
+        })
     },
 
     nodeDrop (draggingNode, dropNode, dropType, ev) {
@@ -310,11 +393,17 @@ export default {
 
 <style>
 .custom-tree-node {
-  flex: 1;
-  display: flex;
-  align-items: center;
+  /* flex: 1; */
+  /* display: flex; */
+  /* align-items: center;
   justify-content: space-between;
   font-size: 14px;
-  padding-right: 8px;
+  padding-right: 8px; */
 }
+/* .left {
+  flex: 1;
+}
+.right {
+  flex: 0 0 100px;
+} */
 </style>

@@ -3,11 +3,12 @@
 
   <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
     <el-table-column prop="id" label="id" />
-    <el-table-column prop="authCode" label="权限Key" />
     <el-table-column prop="authName" label="权限组名" />
     <el-table-column prop="authDesc" label="组描述" />
-    <el-table-column prop="appId" label="归属应用id" />
-    <el-table-column prop="appId" label="归属应用id" />
+    <el-table-column prop="authCode" label="权限Key" />
+    <el-table-column prop="appServiceType" label="归属类型" />
+    <el-table-column prop="appServiceId" label="归属id" />
+    <el-table-column prop="appServiceName" label="归属应用/服务" />
     <el-table-column prop="createUser" label="创建人" />
     <el-table-column prop="createTime" label="创建时间" />
 
@@ -49,9 +50,13 @@
       </el-form-item>
 
       <el-form-item label="归属应用" required="true">
-        <el-select v-model="editData.appId" @click="queryApps"  placeholder="应用选择">
-         <el-option v-for="item in appOptions"  :key="item.id" :label="item.appName"  :value="item.id" />
-       </el-select>
+        <el-cascader
+          :props="{value:'uniqueFlag',label:'name',children:'children',checkStrictly:'true'}"
+          v-model="editData.uniqueFlag"
+          :options="appServiceOptions"
+          placeholder="应用/服务选择" :disabled="!dialogData.isAdd"
+        ></el-cascader>
+
       </el-form-item>
     </el-form>
 
@@ -70,7 +75,7 @@ export default {
   name: '服务拆分',
   data () {
     return {
-      appOptions: [],
+      appServiceOptions: [],
       pageData: {
         current: 1,
         size: 10,
@@ -94,6 +99,7 @@ export default {
   },
   created () {
     this.refreshData()
+    this.queryAppServices()
   },
   methods: {
     refreshData () {
@@ -128,20 +134,27 @@ export default {
         this.editData = {}
       } else {
         this.editData = row
+        this.editData.uniqueFlag = row.appServiceType + ':' + row.appServiceId
       }
       this.dialogData.isAdd = isAdd
       this.dialogData.dialogVisible = true
     },
-    queryApps () {
-      this.axios.get('/base/application', {
-        params: { current: 1, size: 20 }
-      }).then((data) => {
-        this.appOptions = data.records
+    queryAppServices () {
+      this.axios.get('/base/application/cascaderService', {}).then((data) => {
+        this.appServiceOptions = data
       })
     },
     saveData () {
       let promise = null
+
       if (this.dialogData.isAdd) {
+        if (this.editData.uniqueFlag.length === 2) {
+          this.editData.appServiceId = this.editData.uniqueFlag[1].replace('SERVICE:', '')
+          this.editData.appServiceType = 'SERVICE'
+        } else {
+          this.editData.appServiceId = this.editData.uniqueFlag[0].replace('APP:', '')
+          this.editData.appServiceType = 'APP'
+        }
         promise = this.axios.post('/auth/group', this.editData)
       } else {
         promise = this.axios.put('/auth/group', this.editData)
