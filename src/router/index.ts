@@ -7,7 +7,9 @@ import MenuTree from '../business/MenuTree.vue'
 import TableCom from '../components/TableCom.vue'
 import UserTable from '../business/UserTable.vue'
 
+import AuthFunctionTree from '../business/AuthFunctionTree.vue'
 import FunctionTree from '../business/FunctionTree.vue'
+import UserAuthTable from '../business/UserAuthTable.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -54,9 +56,19 @@ const routes: Array<RouteRecordRaw> = [
     component: AuthTable
   },
   {
+    path: '/authFunction',
+    name: 'AuthFunctionTree',
+    component: AuthFunctionTree
+  },
+  {
     path: '/user',
     name: 'user',
     component: UserTable
+  },
+  {
+    path: '/userAuthTable',
+    name: 'UserAuthTable',
+    component: UserAuthTable
   }
 ]
 

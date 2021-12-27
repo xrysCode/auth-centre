@@ -248,6 +248,7 @@ export default {
     app.directive('fun', {
       // 在绑定元素的 attribute 或事件监听器被应用之前调用
       created (el, binding, vnode, prevNode) {
+        debugger
         const _this = binding.instance
         const value = binding.value
         // debugger
@@ -256,15 +257,15 @@ export default {
         // el.classList.add('fun-flag')
         el.fun = 'fun-flag'
         console.log(_this, vnode.el === el)
-      }//,
-      // beforeMount (el, binding, vnode, prevNode) {
+      }//,      // beforeMount (el, binding, vnode, prevNode) {
       //   // el.style.backgroundColor = 'red'
       //   console.log(el)
       // },
       // // 绑定元素的父组件被挂载时调用
+
       // mounted (el, binding, vnode, prevNode) {
       //   console.log(el)
-      // },
+      // }
       // // 在包含组件的 VNode 更新之前调用
       // beforeUpdate (el, binding, vnode, prevNode) {
       //   console.log(el)

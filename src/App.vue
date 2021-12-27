@@ -23,19 +23,21 @@
           <el-sub-menu v-fun.props="['index','key']" v-for="(item) in menus" :index="item.routerPath" :key="item.id">
             <template #title><i class="el-icon-message"></i>{{item.menuName}}</template>
 
-            <template v-if="item.children&&item.children.length!=0">
+            <!-- <template v-if="item.children&&item.children.length!=0">
               <el-menu-item v-fun.props="['index']" v-for="item2 in item.children" :key="item2.id" :index="item2.routerPath"
-                          @click="addTab(item2.routerPath,item2.menuName)">{{item2.menuName}}
+                          @click="addTab(item2.routerPath,item2.menuName)">
+                          {{item2.menuName}}
               </el-menu-item>
-            </template>
+            </template> -->
+            <menu-item :menuArr="item.children" @click="addTab(item2.routerPath,item2.menuName)"/>
           </el-sub-menu>
 
-          <el-sub-menu index="2">
+          <!-- <el-sub-menu index="2">
             <template #title><i class="el-icon-menu"></i>服务基础元数据</template>
               <el-menu-item index="/base/application" @click="addTab('/base/application','应用')" v-fun.props="['index','route','label']">应用</el-menu-item>
               <el-menu-item index="/serve/split" @click="addTab('/serve/split','服务拆分')">服务拆分</el-menu-item>
               <el-menu-item index="/functionTree" @click="addTab('/functionTree','模块功能树')">模块功能树</el-menu-item>
-          </el-sub-menu>
+          </el-sub-menu> -->
           <!-- <el-sub-menu index="3">
             <template #title><i class="el-icon-setting"></i>权限维护</template>
             <el-menu-item-group>
@@ -82,13 +84,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
-import HelloWorld from './components/HelloWorld.vue'
+import { defineComponent, ref, h, resolveComponent } from 'vue'
+import MenuItem from './components/MenuItem.vue'
+
 import TableCom from './components/TableCom.vue'
 // import Tabs from './components/Tabs.vue'
 
 export default defineComponent({
   components: {
+    MenuItem
     // TableCom
   // ,
   // HelloWorld
@@ -112,6 +116,7 @@ export default defineComponent({
       })
   },
   methods: {
+
     addTab (newTabName, title) {
       let hasExist = false
       for (let index = 0; index < this.editableTabs.length; index++) {
