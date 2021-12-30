@@ -248,7 +248,7 @@ export default {
     app.directive('fun', {
       // 在绑定元素的 attribute 或事件监听器被应用之前调用
       created (el, binding, vnode, prevNode) {
-        debugger
+        // debugger
         const _this = binding.instance
         const value = binding.value
         // debugger

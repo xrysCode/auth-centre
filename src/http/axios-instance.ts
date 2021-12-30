@@ -29,8 +29,12 @@ instance.interceptors.request.use(function (config) {
   // delete a.dataRule
   // config.data.data = a
   // console.log(a, b)
-  // config.headers.common.auth = 'zzzz'
   // debugger
+  const currentUser = window.sessionStorage.getItem('currentUser')
+  if (currentUser) {
+    config.headers.token = JSON.parse(currentUser).id
+  }
+
   return config
 }, function (error) {
   // 对请求错误做些什么

@@ -26,21 +26,27 @@
     width="30%"
     center
   >
-    <el-form
-      label-position="right"
-      label-width="80px"
-      :model="dialogData"
-      :rules="dialogData.rules"
-    >
-      <el-form-item
-        v-for="(value, name) in tableColumn"
-        :key="name"
-        :prop="name"
-        :label="value.label"
-        v-show="value.show"
-      >
-        <el-input v-if="value.edit" v-model="editData[name]" :type="value.type"></el-input>
+    <el-form label-position="right"  label-width="80px"  :model="editData"  >
+      <el-form-item label="菜单名" >
+        <el-input v-model="editData.menuName" ></el-input>
       </el-form-item>
+      <el-form-item  label="描述" >
+        <el-input v-model="editData.menuDesc" type="textarea"></el-input>
+      </el-form-item>
+      <el-form-item  label="路由路径" >
+        <el-input v-model="editData.routerPath" ></el-input>
+      </el-form-item>
+      <el-form-item  label="应用权限key" >
+       <el-select v-model="editData.authAppKeys" @click="queryAppServicesAuth('APP')" multiple="true"  placeholder="应用权限key">
+         <el-option  v-for="item in appOptions"  :key="item.authCode"  :label="item.authName" :value="item.authCode" />
+       </el-select>
+      </el-form-item>
+      <el-form-item label="服务权限key" >
+        <el-select v-model="editData.authServiceKeys" @click="queryAppServicesAuth('SERVICE')" multiple="true"  placeholder="服务权限key">
+         <el-option  v-for="item in serviceOptions"  :key="item.authCode"  :label="item.authName" :value="item.authCode" />
+       </el-select>
+      </el-form-item>
+
     </el-form>
 
     <template #footer>
@@ -56,42 +62,6 @@
 export default {
   data () {
     return {
-      tableColumn: {
-        id: { label: '主键', edit: true },
-        parentId: { label: '父节点主键', edit: true },
-        menuName: {
-          label: '菜单名',
-          show: true,
-          edit: true,
-          rules: [
-            {
-              required: true,
-              message: '菜单名称必填',
-              trigger: 'blur'
-            }
-          ]
-        },
-        menuDesc: { label: '描述', show: true, edit: true, type: 'textarea' },
-        routerPath: {
-          label: '路由路径',
-          show: true,
-          edit: true,
-          rules: [
-            {
-              required: true,
-              message: '路由路径必填',
-              trigger: 'blur'
-            }
-          ]
-        },
-        sort: { label: '排序', edit: true },
-        authKeys: { label: '权限keys', show: true, edit: true },
-        comImport: { label: '路由组件位置', show: true, edit: true },
-        componentProps: { label: '组件props', show: true, edit: true },
-
-        createUser: { label: '创建人' },
-        createTime: { label: '创建时间' }
-      },
       data: [],
       defaultProps: {
         children: 'children',
@@ -100,21 +70,16 @@ export default {
       editData: {},
       dialogData: {
         isAdd: false,
-        dialogVisible: false,
-        rules: {}
-      }
+        dialogVisible: false
+      },
+      appOptions: [],
+      serviceOptions: []
     }
   },
   created () {
-    const tableColumn = this.tableColumn
-    const rulesConvert = { }
-    for (const key in tableColumn) {
-      if (tableColumn[key].rules) {
-        rulesConvert[key] = tableColumn[key].rules
-      }
-    }
-    this.dialogData.rules = rulesConvert
     this.refreshData()
+    this.queryAppServicesAuth('APP')
+    this.queryAppServicesAuth('SERVICE')
   },
   methods: {
     refreshData () {
@@ -128,24 +93,13 @@ export default {
         })
     },
     openDialog (isAdd, row) {
-      const tableColumn = this.tableColumn
-      for (const key in this.tableColumn) {
-        if (tableColumn[key].edit === true) {
-          if (isAdd) {
-            switch (key) {
-              case 'parentId':// 添加在子节点
-                this.editData[key] = row.id
-                break
-              case 'sort':
-                this.editData[key] = 0
-                break
-              default:
-                this.editData[key] = null
-            }
-          } else {
-            this.editData[key] = row[key]
-          }
+      if (isAdd) {
+        this.editData = {
+          parentId: row.id, // 添加在子节点
+          sort: 0
         }
+      } else {
+        this.editData = { ...row }
       }
 
       this.dialogData.isAdd = isAdd
@@ -181,6 +135,18 @@ export default {
         .then((data) => {
           this.refreshData()
         })
+    },
+
+    queryAppServicesAuth (appServiceType) {
+      this.axios.get('/auth/group/getAuthOptions', {
+        params: { appServiceId: 1, appServiceType: appServiceType }
+      }).then((data) => {
+        if (appServiceType === 'APP') {
+          this.appOptions = data
+        } else {
+          this.serviceOptions = data
+        }
+      })
     }
   }
 }

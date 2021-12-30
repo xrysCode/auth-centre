@@ -1,5 +1,4 @@
 <template>
-  <el-button type="primary" plain @click="openDialog(true)">新 增</el-button>
 
   <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
      <el-table-column  prop="id" label="主键"  >
@@ -21,14 +20,14 @@
       <el-table-column  prop="authList" label="权限列"  >
         <template #default="user">
           <!-- <template v-for="item in user.row.authList"> -->
-            <spen v-for="item in user.row.authList" :key="item.id" >{{item.authName}}</spen>
+            <spen v-for="item in user.row.authList" :key="item" >{{item}}, </spen>
           <!-- </template> -->
         </template>
       </el-table-column>
 
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
-        <el-button type="text" size="small" @click="openDialog(rowInfo.row)">编 辑</el-button>
+        <el-button type="text" size="small" @click="openAuthTableDialog(rowInfo.row)">编 辑</el-button>
         <!-- <el-button type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button> -->
       </template>
     </el-table-column>
@@ -46,16 +45,17 @@
   >
   </el-pagination>
 
- <el-dialog v-model="outerVisible" title="用户权限列表">
+ <el-dialog v-model="outerVisible" title="用户权限列表" @close="refreshData()">
     <template #default>
       <el-button type="primary" @click="innerVisible = true">新 增</el-button>
-      <el-table :data="editData" style="width: 100%">
+      <el-table :data="userAuthList" style="width: 100%">
+        <el-table-column prop="appServiceType" label="级别" width="120" />
           <el-table-column fixed prop="authName" label="权限组名" width="150" />
           <el-table-column prop="authCode" label="权限Code" width="120" />
-          <el-table-column prop="authDesc" label="描述" width="120" />
+          <el-table-column prop="authDesc" label="描述" width="200" />
           <el-table-column fixed="right" label="操作" width="120">
             <template #default="row">
-              <el-button type="text" size="small" @click="openDialog(row)">删除</el-button>
+              <el-button type="text" size="small" @click="delAuth(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -78,12 +78,6 @@
                   </el-option>
                 </el-select>
               </el-form-item>
-              <!-- <el-form-item label="权限组名" required="true">
-                <el-select  v-model="editData.appServiceType" @change="editData.authId=null" placeholder="权限维度选择">
-                  <el-option label="应用" value="APP" />
-                  <el-option label="服务" value="SERVICE" />
-                </el-select>
-              </el-form-item> -->
 
             </el-form>
 
@@ -103,37 +97,6 @@
     </template>
   </el-dialog>
 
-<!-- <el-dialog v-model="dialogData.dialogVisible" :title="dialogTitle" width="30%" center>
-    <el-form
-      label-position="right"
-      label-width="80px"
-      :model="dialogData"
-    >
-      <el-form-item label="权限组名" required="true">
-        <el-input v-model="editData.authName" disabled/>
-      </el-form-item>
-      <el-form-item label="权限Code" >
-        <el-input v-model="editData.authCode" disabled/>
-      </el-form-item>
-
-      <el-form-item label="归属应用" required="true">
-        <el-cascader
-          :props="{value:'uniqueFlag',label:'name',children:'children',checkStrictly:'true'}"
-          v-model="editData.uniqueFlag"
-          :options="appServiceOptions"
-          placeholder="应用/服务选择" :disabled="!dialogData.isAdd"
-        ></el-cascader>
-
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button  @click="dialogData.dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveUserAuthData" >确 认</el-button >
-      </span>
-    </template>
-  </el-dialog> -->
 </template>
 
 <script lang="ts">
@@ -144,7 +107,7 @@ export default {
   },
   data () {
     return {
-      editData: [],
+      userAuthList: [],
       authOptions: [],
       addUserAuth: {},
       outerVisible: false,
@@ -190,11 +153,24 @@ export default {
       }
       this.refreshData()
     },
+    openAuthTableDialog (userInfo) {
+      this.refreshAuthData(userInfo.id)
+      this.addUserAuth = { userId: userInfo.id }
+      this.outerVisible = true
+    },
+    refreshAuthData (userId) {
+      this.axios.get('/other/user-auth/userAuth', {
+        params: {
+          userId: userId
+        }
+      }).then(data => {
+        this.userAuthList = data
+      })
+    },
     openDialog (row) {
       // debugger
       this.editData = row.authList === null ? [] : row.authList
       this.addUserAuth = { userId: row.id }
-      this.outerVisible = true
     },
     queryAuth () {
       this.axios.get('/auth/group', {
@@ -209,7 +185,14 @@ export default {
     saveUserAuthData () {
       this.axios.post('/other/user-auth', this.addUserAuth).then(data => {
         this.innerVisible = false
+        this.refreshAuthData(this.addUserAuth.userId)
       })
+    },
+    delAuth (authRow) {
+      this.axios.delete('/other/user-auth', { data: [authRow.row.id] })
+        .then(data => {
+          this.refreshAuthData(this.addUserAuth.userId)
+        })
     }
   }
 }

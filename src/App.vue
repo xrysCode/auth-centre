@@ -3,17 +3,18 @@
   <el-container style="height: 500px; border: 1px solid #eee">
 
     <el-header style="text-align: right; font-size: 12px">
-      <el-dropdown>
+      <!-- <el-dropdown>
         <i class="el-icon-setting" style="margin-right: 15px"></i>
         <template #dropdown>
           <el-dropdown-menu>
-            <el-dropdown-item>View</el-dropdown-item>
+            <el-dropdown-item>切换用户</el-dropdown-item>
             <el-dropdown-item>Add</el-dropdown-item>
             <el-dropdown-item>Delete</el-dropdown-item>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <span>Tom</span>
+      <span>Tom</span> -->
+      <UserSwith/>
     </el-header>
 
     <el-container>
@@ -23,34 +24,9 @@
           <el-sub-menu v-fun.props="['index','key']" v-for="(item) in menus" :index="item.routerPath" :key="item.id">
             <template #title><i class="el-icon-message"></i>{{item.menuName}}</template>
 
-            <!-- <template v-if="item.children&&item.children.length!=0">
-              <el-menu-item v-fun.props="['index']" v-for="item2 in item.children" :key="item2.id" :index="item2.routerPath"
-                          @click="addTab(item2.routerPath,item2.menuName)">
-                          {{item2.menuName}}
-              </el-menu-item>
-            </template> -->
             <menu-item :menuArr="item.children" @click="addTab(item2.routerPath,item2.menuName)"/>
           </el-sub-menu>
 
-          <!-- <el-sub-menu index="2">
-            <template #title><i class="el-icon-menu"></i>服务基础元数据</template>
-              <el-menu-item index="/base/application" @click="addTab('/base/application','应用')" v-fun.props="['index','route','label']">应用</el-menu-item>
-              <el-menu-item index="/serve/split" @click="addTab('/serve/split','服务拆分')">服务拆分</el-menu-item>
-              <el-menu-item index="/functionTree" @click="addTab('/functionTree','模块功能树')">模块功能树</el-menu-item>
-          </el-sub-menu> -->
-          <!-- <el-sub-menu index="3">
-            <template #title><i class="el-icon-setting"></i>权限维护</template>
-            <el-menu-item-group>
-              <template #title>Group 1</template>
-              <el-menu-item index="3-1">权限列表</el-menu-item>
-              <el-menu-item index="3-2">功能模块权限关联</el-menu-item>
-            </el-menu-item-group>
-            <el-menu-item-group>
-              <template #title>用户</template>
-              <el-menu-item index="/user"  @click="addTab('/user','用户维护')">用户维护</el-menu-item>
-              <el-menu-item index="3-2">用户权限分配</el-menu-item>
-            </el-menu-item-group>
-          </el-sub-menu> -->
         </el-menu>
       </el-aside>
 
@@ -86,13 +62,15 @@
 <script lang="ts">
 import { defineComponent, ref, h, resolveComponent } from 'vue'
 import MenuItem from './components/MenuItem.vue'
+import UserSwith from './business/UserSwitch.vue'
 
 import TableCom from './components/TableCom.vue'
 // import Tabs from './components/Tabs.vue'
 
 export default defineComponent({
   components: {
-    MenuItem
+    MenuItem,
+    UserSwith
     // TableCom
   // ,
   // HelloWorld

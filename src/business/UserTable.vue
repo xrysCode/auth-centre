@@ -9,13 +9,6 @@
             <el-avatar v-else :size="50" :src="scope.row.headUrl"></el-avatar>
         </template>
       </el-table-column>
-
-    <!-- <el-table-column fixed="right" label="操作" width="200">
-      <template #default="rowInfo">
-        <el-button type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
-        <el-button type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button>
-      </template>
-    </el-table-column> -->
   </el-table>
   <el-pagination
     v-model:page-size="pageData.size"
