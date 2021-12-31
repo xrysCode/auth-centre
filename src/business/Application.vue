@@ -49,11 +49,10 @@
 </template>
 
 <script lang="ts">
-import { InitRequest } from '@/base_scan/auth2.js'
+// import { InitRequest } from '@/base_scan/auth2.js'
 export default {
   name: '表',
   funFlag: [],
-  initRequest: new InitRequest('get', '/base/service'),
   // {
   //   requestMethod: 'get',
   //   requestUrl: '/base/service'

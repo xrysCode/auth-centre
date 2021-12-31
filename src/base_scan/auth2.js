@@ -1,7 +1,3 @@
-/* eslint-disable no-unused-expressions */
-/* eslint-disable @typescript-eslint/no-this-alias */
-/* eslint-disable no-case-declarations */
-/* eslint-disable no-unused-vars */
 import { h, resolveComponent } from 'vue'
 
 /**
@@ -89,7 +85,6 @@ class ComponentNode {
     this.initRouter = _vComponent.ctx.initRouter// 初始化的路由
     this.initRequest = _vComponent.initRequest// 初始化的api
 
-    // this.isRouter = this.name === 'RouterLink' || this.name === 'RouterView'
     this.childNodes = []
     this.sequence = 0// 默认自己是0
     if (parentNode) {
@@ -119,12 +114,6 @@ class ComponentNode {
       uniqueFlag: this.uniqueFlag,
       accessPath: this.accessPath
     }
-  }
-}
-export class InitRequest {
-  constructor (method, url) {
-    this.method = method
-    this.url = url
   }
 }
 
@@ -179,6 +168,7 @@ class EachOtherNotify {
 
   registerWindownEventListener () { // 注册窗口监听 用于不同窗口间通讯
     if (!this.hasWindownListener) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const _this = this
       window.addEventListener('message', function (event) {
         return _this.windowMsgHandle(event)
@@ -251,10 +241,7 @@ export default {
         // debugger
         const _this = binding.instance
         const value = binding.value
-        // debugger
         vnode.funArr = value
-        // el.style.backgroundColor = 'red'
-        // el.classList.add('fun-flag')
         el.fun = 'fun-flag'
         console.log(_this, vnode.el === el)
       }//,      // beforeMount (el, binding, vnode, prevNode) {
@@ -278,12 +265,6 @@ export default {
     // 注入全局混入代理  这里对比是否需要拦截或者展示auth按钮配置
     // 默认开启
     app.mixin({
-      // data () {
-      //   // this.$router.currentRoute
-      //   return {
-      //     dataRule: { a: 'a' }
-      //   }
-      // },
       beforeCreate () {
         // this.componentModule = new ComponentModule(this)
         // DOM 尚未更新

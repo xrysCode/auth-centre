@@ -17,6 +17,7 @@ const app = createApp(App)
   .use(router)
   .use(ElementPlus)
   .use(VueAxios, axios)
+
   .use(auth)
 
 app.mount('#app')
