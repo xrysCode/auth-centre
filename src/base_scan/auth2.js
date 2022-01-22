@@ -13,7 +13,7 @@ import { h, resolveComponent } from 'vue'
     SUSPENSE = 128,
     COMPONENT_SHOULD_KEEP_ALIVE = 256,
     COMPONENT_KEPT_ALIVE = 512,
-    COMPONENT = 6  这是一个有毒的数字  6=4+2~~~~
+    COMPONENT = 6  这是一个有毒的数字  6=4+2 ~.~
  * @param {Array} vNodes 虚拟节点数组
  * @param {*} parentNode 解析的父节点
  * @returns componentNode
@@ -51,39 +51,9 @@ class ComponentNode {
 
     this.name = vType.name != null ? vType.name : vType.__file.substring(vType.__file.lastIndexOf('/') + 1)// 组件名
     this.type = { name: _vComponent.type.name, __file: _vComponent.type.__file }
-
-    this.isFunNode = false
-    this.props = null
-    // 指令
-    if (vNode.dirs && vNode.el.fun === 'fun-flag') { // 有的带有指令，但是却没有作用于元素
-      const funArr = vNode.dirs
-      for (let i = 0; i < funArr.length; i++) {
-        const dir = funArr[i]
-        if (dir.modifiers.props) {
-          this.isFunNode = true
-          this.props = {}
-          if (dir.value instanceof Array) {
-            dir.value.forEach(propName => {
-              this.props[propName] = vNode.props[propName]
-            })
-          }
-          break
-        }
-      }
-    }
-    // 组件自声明名
-    if (_vComponent.type.funFlag) {
-      this.isFunNode = true
-      this.props = {}
-      if (_vComponent.type.funFlag instanceof Array) {
-        _vComponent.type.funFlag.forEach(propName => {
-          this.props[propName] = vNode.props[propName]
-        })
-      }
-    }
-
-    this.initRouter = _vComponent.ctx.initRouter// 初始化的路由
-    this.initRequest = _vComponent.initRequest// 初始化的api
+    this.props = vNode.props
+    // 指令解析的值
+    this.functionModuleFlag = _vComponent.ctx.functionModuleFlag
 
     this.childNodes = []
     this.sequence = 0// 默认自己是0
@@ -105,10 +75,9 @@ class ComponentNode {
       shapeFlag: this.shapeFlag,
       name: this.name,
       type: this.type,
-      isFunNode: this.isFunNode,
-
       props: this.props,
-      initRouter: this.initRouter,
+
+      functionModuleFlag: this.functionModuleFlag,
       childNodes: this.childNodes,
       sequence: this.sequence,
       uniqueFlag: this.uniqueFlag,
@@ -226,58 +195,68 @@ class EachOtherNotify {
   }
 }
 
+class FunctionModuleFlag {
+  constructor (_this, dirObject) {
+    const initRouter = _this.$router.currentRoute.value
+    const type = _this.$.type
+    // 路由:组件:[字段/标记]
+    this.webFullPath = initRouter.fullPath
+    this.comUniqueFlag = `${this.webFullPath}:${type.name}:${dirObject.arg ? dirObject.arg : ''}`// href
+    this.requestMethods = Object.keys(dirObject.modifiers)
+    this.requestUrl = dirObject.value
+  }
+}
+
 export default {
 
   install: (app, options) => {
     // 全局注册相关的组件
-    // app.component('AuthRule', AuthRule)
-    // debugger
     const msgNotify = new EachOtherNotify(app)
     msgNotify.registerWindownEventListener()
     // 指令 用于扫描过滤，和拦截两用。
-    app.directive('fun', {
-      // 在绑定元素的 attribute 或事件监听器被应用之前调用
-      created (el, binding, vnode, prevNode) {
-        // debugger
-        const _this = binding.instance
-        const value = binding.value
-        vnode.funArr = value
-        el.fun = 'fun-flag'
-        console.log(_this, vnode.el === el)
-      }//,      // beforeMount (el, binding, vnode, prevNode) {
-      //   // el.style.backgroundColor = 'red'
-      //   console.log(el)
-      // },
-      // // 绑定元素的父组件被挂载时调用
-
-      // mounted (el, binding, vnode, prevNode) {
-      //   console.log(el)
-      // }
-      // // 在包含组件的 VNode 更新之前调用
-      // beforeUpdate (el, binding, vnode, prevNode) {
-      //   console.log(el)
-      // }
-
+    app.directive('funFlag', {
+      funFlag: true// 用于标记组件是否需要权限，并使用这个标记来取组件指令的值
     })
-
-    // 动态添加参数，找出初始化的接口api
 
     // 注入全局混入代理  这里对比是否需要拦截或者展示auth按钮配置
     // 默认开启
     app.mixin({
       beforeCreate () {
-        // this.componentModule = new ComponentModule(this)
         // DOM 尚未更新
-        this.$nextTick(function () {
-        // DOM 现在更新了
-        // `this` 被绑定到当前实例
-          this.initRouter = { ...this.$router.currentRoute.value, matched: '忽略' }// new InitRouter(this.$router.currentRoute)
-        })
-
-        // console.log('beforeCreate', this)
+        // this.$nextTick(function () {
+        // // DOM 现在更新了
+        // // `this` 被绑定到当前实例
+        //   this.initRouter = { ...this.$router.currentRoute.value, matched: '忽略' }// new InitRouter(this.$router.currentRoute)
+        // })
+        // debugger
+        const instance = this.$
+        console.log(instance.type, this.$router.currentRoute.value)
+        const dirs = instance.vnode.dirs ? instance.vnode.dirs : []
+        for (let index = 0; index < dirs.length; index++) {
+          const dirObject = dirs[index]
+          if (dirObject.dir.funFlag) {
+            // console.log('需要代理', funFlag)
+            const funFlag = new FunctionModuleFlag(this, dirObject)
+            this.functionModuleFlag = funFlag
+            const targetRender = instance.render
+            const handler = {
+              apply: function (target, ctx, args) {
+                // 从用户返回值中取出值，对比是否相同，如果有就放行，没有就返回一个空节点，注释
+                const userAuthStr = window.localStorage.getItem('userAuth')
+                const hasAuth = JSON.parse(userAuthStr).indexOf(funFlag.comUniqueFlag)
+                // if (hasAuth === -1) { // 存在运行渲染
+                //   // 组件不需要渲染，这时它可以返回 null。这样我们在 DOM 中会渲染一个注释节点。
+                //   return h(null, {}, ` permission denied  ${funFlag.comUniqueFlag} `)
+                // }
+                return Reflect.apply(target, ctx, args)
+              }
+            }
+            const proxy = new Proxy(targetRender, handler)
+            instance.render = proxy
+          }
+        }
       }
       // const parent = this.$parent
-      // const mySelfComponent = this.$
 
       // <transition> 元素作为单个元素/组件的过渡效果。<transition> 只会把过渡效果应用到其包裹的内容上，
       // 而不会额外渲染 DOM 元素，也不会出现在可被检查的组件层级中。
@@ -322,21 +301,7 @@ export default {
       //     needAuth = false
       //   }// 从这里要得到访问的准确路
 
-      //   if (needAuth) { // 组件优先级最高 && vc.props.label === 'Operations' typeName === 'RouterLink'
-      //     const target = mySelfComponent.render
-      //     const handler = {
-      //       apply: function (target, ctx, args) {
-      //         if (!needAuth) {
-      //           return Reflect.apply(target, ctx, args)
-      //         } else { // 组件不需要渲染，这时它可以返回 null。这样我们在 DOM 中会渲染一个注释节点。
-      //           return null
-      //         }
-      //       }
-      //     }
-      //     const proxy = new Proxy(target, handler)
-      //     mySelfComponent.render = proxy
-      //     console.log(this, target)
-      //   } else if (needDataAuth) { // 显示数据级弹框规则配置
+      //  if (needDataAuth) { // 显示数据级弹框规则配置
       //   // if (typeName === 'ElTableColumn' && this.$props && this.$props.label === 'Operations') {
       //     // debugger
       //     const slot = this.$.slots.default

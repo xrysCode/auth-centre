@@ -1,13 +1,13 @@
 <template>
-  <el-button v-fun.props="['key']" key="add" type="primary" plain @click="openDialog(true)">新 增</el-button>
+  <el-button v-funFlag.post="baseAppUrl" key="add" type="primary" plain @click="openDialog(true)">新 增</el-button>
 
-  <el-table v-fun.props="[]" :data="pageData.tableData" current-row-key="id" style="width: 100%">
-    <el-table-column v-fun.props="['key','prop','label']" v-show="true" v-for="(value, name) in tableColumn"
-      :key="name" :prop="name" :label="value.label"  />
+  <el-table v-funFlag.get="baseAppUrl" :data="pageData.tableData" current-row-key="id" style="width: 100%">
+    <el-table-column v-for="(value, name) in tableColumn" :key="name" :prop="name" :label="value.label"
+       v-funFlag:[name]="baseAppUrl" />
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
-        <el-button v-fun.props="['key']" key="edit" type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
-        <el-button v-fun.props="['key']" key="del" type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button>
+        <el-button v-funFlag.put="baseAppUrl" key="edit" type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
+        <el-button v-funFlag.delete="baseAppUrl" key="del" type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -51,18 +51,10 @@
 <script lang="ts">
 // import { InitRequest } from '@/base_scan/auth2.js'
 export default {
-  name: '表',
-  funFlag: [],
-  // {
-  //   requestMethod: 'get',
-  //   requestUrl: '/base/service'
-  // },
-  props: {
-    // tableColumn: Object,
-    tableUrl: String
-  },
+  name: '应用',
   data () {
     return {
+      baseAppUrl: '/base/application',
       tableColumn: {
         id: { label: '主键', edit: true },
         appName: {
@@ -116,7 +108,7 @@ export default {
   methods: {
     refreshData () {
       // debugger
-      this.axios.get(this.$props.tableUrl, {
+      this.axios.get(this.baseAppUrl, {
         params: {
           current: this.pageData.current,
           size: this.pageData.size,
@@ -160,9 +152,9 @@ export default {
     saveData () {
       let promise = null
       if (this.dialogData.isAdd) {
-        promise = this.axios.post(this.$props.tableUrl, this.editData)
+        promise = this.axios.post(this.baseAppUrl, this.editData)
       } else {
-        promise = this.axios.put(this.$props.tableUrl, this.editData)
+        promise = this.axios.put(this.baseAppUrl, this.editData)
       }
       promise.then(data => {
         this.dialogData.dialogVisible = false
@@ -171,7 +163,7 @@ export default {
     },
     deleteRow (row) {
       debugger
-      this.axios.delete(this.$props.tableUrl, { data: [row.id] })
+      this.axios.delete(this.baseAppUrl, { data: [row.id] })
         .then(data => {
           this.dialogData.dialogVisible = false
           this.refreshData()

@@ -2,9 +2,9 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import AuthTable from '../business/AuthTable.vue'
 import Application from '../business/Application.vue'
 import ServiceSplit from '../business/ServiceSplit.vue'
-import AppHome from '@/App.vue'
+// import AppHome from '@/App.vue'
 import MenuTree from '../business/MenuTree.vue'
-import TableCom from '../components/TableCom.vue'
+// import TableCom from '../components/TableCom.vue'
 import UserTable from '../business/UserTable.vue'
 
 import AuthFunctionTree from '../business/AuthFunctionTree.vue'
@@ -14,27 +14,18 @@ import UserAuthTable from '../business/UserAuthTable.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'TableCom',
-    component: TableCom,
-    props: {
-      tableUrl: '/base/service'
-    }
+    name: 'ServiceSplitHome',
+    component: ServiceSplit
   },
   {
     path: '/base/application',
     name: 'application',
-    component: Application,
-    props: {
-      tableUrl: '/base/application'
-    }
+    component: Application
   },
   {
     path: '/serve/split',
     name: 'ServiceSplit',
-    component: ServiceSplit,
-    props: {
-      tableUrl: '/base/service'
-    }
+    component: ServiceSplit
   },
   {
     path: '/functionTree',

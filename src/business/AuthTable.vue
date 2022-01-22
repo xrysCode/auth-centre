@@ -1,21 +1,21 @@
 <template>
-  <el-button type="primary" plain @click="openDialog(true)">新 增</el-button>
+  <el-button type="primary" v-funFlag.post="baseAuthUrl" plain @click="openDialog(true)">新 增</el-button>
 
   <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
-    <el-table-column prop="id" label="id" />
-    <el-table-column prop="authName" label="权限组名" />
-    <el-table-column prop="authDesc" label="组描述" />
-    <el-table-column prop="authCode" label="权限Key" />
-    <el-table-column prop="appServiceType" label="归属类型" />
+    <el-table-column prop="id" label="id" v-funFlag:id=""/>
+    <el-table-column prop="authName" label="权限组名" v-funFlag:authName=""/>
+    <el-table-column prop="authDesc" label="组描述" v-funFlag:authDesc=""/>
+    <el-table-column prop="authCode" label="权限Key" v-funFlag:authCode=""/>
+    <el-table-column prop="appServiceType" label="归属类型" v-funFlag:appServiceType=""/>
     <el-table-column prop="appServiceId" label="归属id" />
-    <el-table-column prop="appServiceName" label="归属应用/服务" />
+    <el-table-column prop="appServiceName" label="归属应用/服务" v-funFlag:appServiceName=""/>
     <el-table-column prop="createUser" label="创建人" />
     <el-table-column prop="createTime" label="创建时间" />
 
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
-        <el-button type="text" size="small" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
-        <el-button type="text" size="small" @click="deleteRow(rowInfo.row)">删 除</el-button>
+        <el-button type="text" size="small" v-funFlag.put="baseAuthUrl" @click="openDialog(false,rowInfo.row)">编 辑</el-button>
+        <el-button type="text" size="small" v-funFlag.delete="baseAuthUrl" @click="deleteRow(rowInfo.row)">删 除</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -75,6 +75,7 @@ export default {
   name: '服务拆分',
   data () {
     return {
+      baseAuthUrl: '/auth/group',
       appServiceOptions: [],
       pageData: {
         current: 1,
@@ -103,7 +104,7 @@ export default {
   },
   methods: {
     refreshData () {
-      this.axios.get('/auth/group', {
+      this.axios.get(this.baseAuthUrl, {
         params: {
           current: this.pageData.current,
           size: this.pageData.size,
@@ -155,9 +156,9 @@ export default {
           this.editData.appServiceId = this.editData.uniqueFlag[0].replace('APP:', '')
           this.editData.appServiceType = 'APP'
         }
-        promise = this.axios.post('/auth/group', this.editData)
+        promise = this.axios.post(this.baseAuthUrl, this.editData)
       } else {
-        promise = this.axios.put('/auth/group', this.editData)
+        promise = this.axios.put(this.baseAuthUrl, this.editData)
       }
       promise.then(data => {
         this.dialogData.dialogVisible = false
@@ -166,7 +167,7 @@ export default {
     },
     deleteRow (row) {
       debugger
-      this.axios.delete('/auth/group', { data: [row.id] })
+      this.axios.delete(this.baseAuthUrl, { data: [row.id] })
         .then(data => {
           this.dialogData.dialogVisible = false
           this.refreshData()

@@ -21,7 +21,7 @@
 
     <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
         <el-menu :default-openeds="['1']" router="true">
-          <el-sub-menu v-fun.props="['index','key']" v-for="(item) in menus" :index="item.routerPath" :key="item.id">
+          <el-sub-menu v-funFlag:[item.menuName]="" v-for="(item) in menus" :index="item.routerPath" :key="item.id">
             <template #title><i class="el-icon-message"></i>{{item.menuName}}</template>
 
             <menu-item :menuArr="item.children" @click="addTab(item2.routerPath,item2.menuName)"/>

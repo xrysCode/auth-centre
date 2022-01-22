@@ -2,7 +2,7 @@
   <el-button type="primary" plain @click="openDialog(true)">新 增</el-button>
 
   <el-table :data="pageData.tableData" current-row-key="id" style="width: 100%">
-    <el-table-column v-fun.props="['key','prop','label']" v-show="true" v-for="(value, name) in tableColumn"
+    <el-table-column v-funFlag.props="['key','prop','label']" v-show="true" v-for="(value, name) in tableColumn"
       :key="name" :prop="name" :label="value.label"  />
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="rowInfo">
@@ -49,22 +49,13 @@
 </template>
 
 <script lang="ts">
-import { InitRequest } from '@/base_scan/auth2.js'
+// import { InitRequest } from '@/base_scan/auth2.js'
 export default {
   components: {
     // TableCom
   // ,
   },
   name: '表',
-  // initRequest: new InitRequest('get', '/base/service'),
-  // {
-  //   requestMethod: 'get',
-  //   requestUrl: '/base/service'
-  // },
-  props: {
-    // tableColumn: Object,
-    tableUrl: String
-  },
   data () {
     return {
       tableColumn: {
@@ -120,7 +111,7 @@ export default {
   methods: {
     refreshData () {
       // debugger
-      this.axios.get(this.$props.tableUrl, {
+      this.axios.get('/base/service', {
         params: {
           current: this.pageData.current,
           size: this.pageData.size,
@@ -164,9 +155,9 @@ export default {
     saveData () {
       let promise = null
       if (this.dialogData.isAdd) {
-        promise = this.axios.post(this.$props.tableUrl, this.editData)
+        promise = this.axios.post('/base/service', this.editData)
       } else {
-        promise = this.axios.put(this.$props.tableUrl, this.editData)
+        promise = this.axios.put('/base/service', this.editData)
       }
       promise.then(data => {
         this.dialogData.dialogVisible = false
@@ -175,7 +166,7 @@ export default {
     },
     deleteRow (row) {
       debugger
-      this.axios.delete(this.$props.tableUrl, { data: [row.id] })
+      this.axios.delete('/base/service', { data: [row.id] })
         .then(data => {
           this.dialogData.dialogVisible = false
           this.refreshData()

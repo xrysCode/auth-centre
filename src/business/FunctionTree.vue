@@ -17,32 +17,27 @@
       提取页域名：{{ iframeUrl.origin }} 提取页路劲：{{ iframeUrl.path }}
       <el-main
         >组件树
-        <el-switch
-          v-model="isOpenScan"
-          @change="openScan"
-          inline-prompt
-          active-color="#13ce66"
-          inactive-color="#ff4949"
+        <el-switch  v-model="isOpenScan"  @change="openScan"  inline-prompt   active-color="#13ce66"  inactive-color="#ff4949"
           active-text="开启组件扫描"
           inactive-text="关闭组件扫描"
         />
         <el-tree
           :data="componentTree"
-          node-key="uniqueFlag"
+          node-key="comUniqueFlag"
           :props="treeProps"
           highlight-current="true"
           default-expand-all
           :expand-on-click-node="false"
           :render-content="renderContent"
+          draggable
+          :allow-drag="()=>true"
+          :allow-drop="()=>true"
+          ref="comTree"
+          @node-drop="comDragStart"
         >
           <template #default="{ data }">
             <span class="custom-tree-node">
-              <span >
-                  {{ data.funName }} 初始路由：{{
-                    data.currentReferer ? data.currentReferer : "?"
-                  }}
-                  <!-- props:{{ data.componentProps }} -->
-                  </span>
+              <span >{{ data.funName }} 唯一标识:{{ data.comUniqueFlag }}</span>
               <span >
                 <a @click="openDialog(true, data)"> 移动到功能树 </a>
               </span>
@@ -50,16 +45,15 @@
           </template>
         </el-tree>
       </el-main>
-      <el-main
-        >功能树
-
+      <el-main>功能树
         <el-tree
           :data="funTree"
           :props="treeProps"
-          draggable
           default-expand-all
           node-key="id"
-          @node-drop="nodeDrop"
+          draggable
+          ref="funTree"
+          @node-drop="nodeDrop2"
         >
           <template #default="{ node, data }">
             <span class="custom-tree-node">
@@ -106,43 +100,31 @@
       <el-form-item label="描述">
         <el-input v-model="editData.funDesc" type="textarea" />
       </el-form-item>
-      <el-form-item label="当前页面">
-        <el-input v-model="editData.currentReferer" type="textarea" disabled />
-      </el-form-item>
-      <el-form-item label="组件type">
-        <el-input
-          v-model="editData.componentTypeStr"
-          type="textarea"
-          disabled
-        />
-      </el-form-item>
-      <el-form-item label="组件props">
-        <el-input
-          v-model="editData.componentPropsStr"
-          type="textarea"
-          disabled
-        />
-      </el-form-item>
-      <el-form-item label="后端访问接口">
-        <el-input v-model="editData.requestUrl" />
-      </el-form-item>
-      <el-form-item label="请求方法">
-        <el-input v-model="editData.requestMethod" />
-      </el-form-item>
       <el-form-item label="归属服务选择">
-        <el-select
-          v-model="editData.serviceId"
-          @click="queryAppServices"
-          placeholder="应用服务选择"
-        >
-          <el-option
-            v-for="item in appServiceOptions"
-            :key="item.id"
-            :label="item.serviceName"
-            :value="item.id"
-          />
+        <el-select  v-model="editData.serviceId"   @click="queryAppServices"  placeholder="应用服务选择" >
+          <el-option  v-for="item in appServiceOptions"  :key="item.id"  :label="item.serviceName"  :value="item.id" />
         </el-select>
       </el-form-item>
+      <el-form-item label="初始页面">
+        <el-input :modelValue="editData.currentReferer" type="textarea" disabled />
+      </el-form-item>
+      <el-form-item label="组件唯一标识">
+        <el-input :modelValue="editData.comUniqueFlag" disabled />
+      </el-form-item>
+      <el-form-item label="后端访问接口">
+        <el-input :modelValue="editData.requestUrl" disabled/>
+      </el-form-item>
+      <el-form-item label="请求方法">
+        <el-input :modelValue ="JSON.stringify(editData.requestMethods)" disabled/>
+      </el-form-item>
+
+      <el-form-item label="组件type">
+        <el-input  :modelValue="JSON.stringify(editData.componentType)" type="textarea" disabled  />
+      </el-form-item>
+      <el-form-item label="组件props">
+        <el-input  :modelValue="JSON.stringify(editData.componentProps)" type="textarea"  disabled />
+      </el-form-item>
+
     </el-form>
 
     <template #footer>
@@ -197,8 +179,9 @@ export default {
   },
   created () {
     this.queryApp().then(() => {
-      this.currentApp = this.appOptions[0]
+      this.currentApp = this.appOptions[this.appOptions.length - 1]
       this.refreshTreeAndIframe()
+      this.refreshFunTree()
     })
   },
 
@@ -211,18 +194,20 @@ export default {
       const tempParentFunTree = parentFunTree
       for (let index = 0; index < treeArr.length; index++) {
         const node = treeArr[index]
-        if (node.isFunNode) {
+        if (node.functionModuleFlag) {
           const funNode = {
             children: [],
             componentProps: node.props,
             componentType: node.type,
-            currentReferer: node.initRouter.fullPath,
+            functionModuleFlag: node.functionModuleFlag,
+            currentReferer: node.functionModuleFlag.webFullPath,
+            comUniqueFlag: node.functionModuleFlag.comUniqueFlag,
             // funDesc: '',
             funName: node.name,
             // id: 0,
             // parentId: 0,
-            requestMethod: node.initRequest ? node.initRequest.method : null,
-            requestUrl: node.initRequest ? node.initRequest.url : null,
+            requestMethods: node.functionModuleFlag.requestMethods,
+            requestUrl: node.functionModuleFlag.requestUrl,
             // serviceId: 0,
             sort: index
           }
@@ -307,14 +292,8 @@ export default {
       const accessPath = this.currentApp.accessPath
       if (accessPath.startsWith('http')) {
         // 存在以域名开头的和/开头的路径
-        this.iframeUrl.origin = accessPath.replace(
-          /(^https*:\/\/[^/]+)(.+)/,
-          '$1'
-        )
-        this.iframeUrl.path = accessPath.replace(
-          /(^https*:\/\/[^/]+)(.+)/,
-          '$2'
-        )
+        this.iframeUrl.origin = accessPath.replace(/(^https*:\/\/[^/]+)(.+)/, '$1')
+        this.iframeUrl.path = accessPath.replace(/(^https*:\/\/[^/]+)(.+)/, '$2')
       } else {
         this.iframeUrl.origin = ''
         this.iframeUrl.path = accessPath
@@ -334,7 +313,7 @@ export default {
     },
 
     refreshFunTree () {
-      // debugger
+      debugger
       this.axios
         .get('/base/function-module', {
           params: { appId: this.currentApp.id }
@@ -348,8 +327,6 @@ export default {
         ...comData,
         children: null
       }
-      editData.componentPropsStr = JSON.stringify(editData.componentProps)
-      editData.componentTypeStr = JSON.stringify(editData.componentType)
       this.editData = editData
       this.dialogData.isAdd = isAdd
       this.dialogData.dialogVisible = true
@@ -386,6 +363,25 @@ export default {
         .then((data) => {
           this.refreshFunTree()
         })
+    },
+    // eslint-disable-next-line space-before-blocks
+    comDragStart (draggingNode, ev){
+      const data = draggingNode.data
+      ev.dataTransfer.setData('text', JSON.stringify(data))
+    },
+    nodeDrop2 (draggingNode, dropNode, dropType, ev) {
+      // before、after、inner
+      debugger
+      console.log('tree drag end: ', draggingNode, dropType)
+      // this.axios
+      //   .put('/base/function-module/shift', {
+      //     draggingId: draggingNode.data.id,
+      //     replaceId: dropNode.data.id,
+      //     dropType: dropType
+      //   })
+      //   .then((data) => {
+      //     this.refreshFunTree()
+      //   })
     }
   }
 }
